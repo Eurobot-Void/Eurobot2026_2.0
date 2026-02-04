@@ -1,0 +1,6 @@
+../Core/Src/void_moduli/servo.c:29:13:PCA9685_write_reg	1
+../Core/Src/void_moduli/servo.c:33:16:PCA9685_read_reg	1
+../Core/Src/void_moduli/servo.c:40:13:PCA9685_set_pwm_freq	1
+../Core/Src/void_moduli/servo.c:54:13:PCA9685_set_pwm	1
+../Core/Src/void_moduli/servo.c:64:6:servo_init	1
+../Core/Src/void_moduli/servo.c:72:6:servo_set_angle	4

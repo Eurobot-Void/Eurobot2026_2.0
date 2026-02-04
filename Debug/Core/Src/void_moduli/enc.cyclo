@@ -1,0 +1,3 @@
+../Core/Src/void_moduli/enc.c:13:6:encoders_init	1
+../Core/Src/void_moduli/enc.c:19:9:enc1_get_delta_inc	1
+../Core/Src/void_moduli/enc.c:27:9:enc2_get_delta_inc	1

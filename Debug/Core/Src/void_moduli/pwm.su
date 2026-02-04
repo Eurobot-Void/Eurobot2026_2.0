@@ -1,0 +1,7 @@
+../Core/Src/void_moduli/pwm.c:36:21:saturate	24	static
+../Core/Src/void_moduli/pwm.c:45:6:set_ref_velocity	24	static
+../Core/Src/void_moduli/pwm.c:54:6:bdc_loop	32	static
+../Core/Src/void_moduli/pwm.c:93:6:set_m_right_voltage	24	static
+../Core/Src/void_moduli/pwm.c:108:6:set_m_left_voltage	24	static
+../Core/Src/void_moduli/pwm.c:123:6:set_dir_m_right	16	static
+../Core/Src/void_moduli/pwm.c:133:6:set_dir_m_left	16	static
