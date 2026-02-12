@@ -2,7 +2,7 @@
 #define INC_VOID_MODULI_UTIL_H_
 
 float normalize_rad_angle(float angle);
-static inline float saturate(float x, float max, float min) //Funkcija koju pravim za ogranicenje napona, smanjen kod
+static inline float clamp(float x, float max, float min) //Funkcija koju pravim za ogranicenje napona, smanjen kod
 {
 	if (x > max)
 		return max;
