@@ -38,8 +38,8 @@ void set_ref_velocity(float v, float w) {
 	v_r_ref = v + w * HALF_SEPARATION_WHEEL;
 	v_l_ref = v - w * HALF_SEPARATION_WHEEL;
 
-	v_l_ref = clamp(v_l_ref, v_l_max, -v_l_max);
-	v_r_ref = clamp(v_r_ref, v_r_max, -v_r_max);
+	v_l_ref = clamp(v_l_ref, -v_l_max, v_l_max);
+	v_r_ref = clamp(v_r_ref, -v_r_max, v_r_max);
 
 }
 
@@ -74,8 +74,8 @@ void bdc_loop() {
 	prev_error_r = error_r;
 	prev_error_l = error_l;
 
-	motor_output_r = clamp(motor_output_r, MAX_VOLTAGE, -MAX_VOLTAGE);
-	motor_output_l = clamp(motor_output_l, MAX_VOLTAGE, -MAX_VOLTAGE); //opet da ogranicimo ako je izlazni napon iz regulatora veci ili manji od maksimalnog napona koji mozemo dovesti na motor
+	motor_output_r = clamp(motor_output_r, -MAX_VOLTAGE, MAX_VOLTAGE);
+	motor_output_l = clamp(motor_output_l, -MAX_VOLTAGE, MAX_VOLTAGE); //opet da ogranicimo ako je izlazni napon iz regulatora veci ili manji od maksimalnog napona koji mozemo dovesti na motor
 //Medjutim, takav napon ne mozemo dovesti na drajver, treba nam smjer i pwm signal
 	set_m_left_voltage(motor_output_l);
 	set_m_right_voltage(motor_output_r); //znaci odredili smo i smjer i ccr registar
@@ -84,7 +84,7 @@ void bdc_loop() {
 
 void set_m_right_voltage(float voltage) //voltage je zapravo izlaz pi regulatora
 {
-	voltage = clamp(voltage, MAX_VOLTAGE, -MAX_VOLTAGE);
+	voltage = clamp(voltage, -MAX_VOLTAGE, MAX_VOLTAGE);
 	if (voltage > 0) {
 		set_dir_m_right(FORWARD); //smer
 		TIM3->CCR2 = (uint32_t) ((voltage / MAX_VOLTAGE) * ARR_MAX); //koliki je pwm signal
@@ -99,7 +99,7 @@ void set_m_right_voltage(float voltage) //voltage je zapravo izlaz pi regulatora
 
 void set_m_left_voltage(float voltage) //voltage je zapravo izlaz pi regulatora
 {
-	voltage = clamp(voltage, MAX_VOLTAGE, -MAX_VOLTAGE);
+	voltage = clamp(voltage, -MAX_VOLTAGE, MAX_VOLTAGE);
 	if (voltage > 0) {
 		set_dir_m_left(FORWARD); //smer
 		TIM4->CCR1 = (uint32_t) ((voltage / MAX_VOLTAGE) * ARR_MAX); //koliki je pwm signal
