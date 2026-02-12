@@ -12,7 +12,5 @@
 extern volatile float x, y, theta, v_l, v_r, w, v; //da bi bilo vidljivo u ostalim fajlovima
 
 void odom_loop();
-float normalize_rad_angle(float angle);
-
 
 #endif /* INC_VOID_MODULI_ODOM_H_ */

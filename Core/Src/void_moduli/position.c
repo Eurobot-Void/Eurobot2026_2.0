@@ -9,6 +9,7 @@
 #include "void_moduli/odom.h"
 #include <math.h>
 #include "void_moduli/pwm.h"
+#include "void_moduli/util.h"
 #define V_MIN 0.05
 #define W_MIN 0.03
 const float Kp_w = 0.0;
@@ -202,4 +203,3 @@ position_loop ()
     }
   set_ref_velocity (v_ref, w_ref);
 }
-

@@ -10,6 +10,7 @@
 #include <math.h>
 #include "void_moduli/pwm.h"
 #include "void_moduli/enc.h"
+#include "void_moduli/util.h"
 
 const float C_INC2RAD = 0.0015332031/2.0; 	// [rad/inc]
 const float radius_tocka = 0.0775 / 2; 	// [m]
@@ -30,16 +31,3 @@ void odom_loop() {
 	theta = normalize_rad_angle(theta);
 
 }
-
-float normalize_rad_angle(float angle) //ovo je samo ogranicenje da se ugao nalzi izmedju minu pi i pi
-{
-	if (angle > M_PI) {
-		return angle - 2 * M_PI;
-	}
-	if (angle < -M_PI) {
-		return angle + 2 * M_PI;
-	}
-
-	return angle;
-}
-

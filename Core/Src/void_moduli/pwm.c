@@ -11,6 +11,7 @@
 #include "gpio.h"
 #include <math.h>
 #include "void_moduli/position.h"
+#include "void_moduli/util.h"
 
 volatile float v_l_measured = 0;
 volatile float v_r_measured = 0; //brzine lijevog i desnog tocka koje se racunaju u odom.c
@@ -32,15 +33,6 @@ const float Kp_l = 25, Kp_r = 20; //Kp povecavamo dok robot ne krene da podrhtav
 const float Ki_l = 2.5, Ki_r = 2;
 volatile float prev_error_l = 0; //prethodna greska
 volatile float prev_error_r = 0;
-
-static inline float saturate(float x, float max, float min) //Funkcija koju pravim za ogranicenje napona, smanjen kod
-{
-	if (x > max)
-		return max;
-	if (x < min)
-		return min;
-	return x;
-}
 
 void set_ref_velocity(float v, float w) {
 	v_r_ref = v + w * HALF_SEPARATION_WHEEL;
@@ -140,4 +132,3 @@ void set_dir_m_left(Dir_t dir) {
 		break;
 	}
 }
-
