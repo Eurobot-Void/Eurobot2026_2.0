@@ -1,10 +1,3 @@
-/*
- * ax12.c
- *
- *  Created on: Feb 3, 2026
- *      Author: Win11
- */
-
 #include "void_moduli/ax12.h"
 #include "usart.h"
 
@@ -28,6 +21,7 @@ void ax12_set_position(uint8_t id, uint16_t position) {
 
 	HAL_UART_Transmit(&huart6, packet, 9, 100);
 }
+
 void ax12_rack_down(void) {
 	ax12_set_position(AX12_ID, AX12_RACK_DOWN);
 }
@@ -35,5 +29,3 @@ void ax12_rack_down(void) {
 void ax12_rack_up(void) {
 	ax12_set_position(AX12_ID, AX12_RACK_UP);
 }
-
-

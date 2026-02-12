@@ -1,15 +1,7 @@
-/*
- * pwm.c
- *
- *  Created on: Feb 3, 2026
- *      Author: Win11
- */
-
-
-#include "void_moduli/pwm.h"
+#include <math.h>
 #include "timer.h"
 #include "gpio.h"
-#include <math.h>
+#include "void_moduli/pwm.h"
 #include "void_moduli/position.h"
 #include "void_moduli/util.h"
 
@@ -22,7 +14,7 @@ const float v_l_max = 0.5;
 volatile float v_r_ref = 0; //one koje treba da dostignemo, racunaju se u set_ref_velocity
 volatile float v_l_ref = 0;
 
-volatile float v_r_trapez = 0; //
+volatile float v_r_trapez = 0;
 volatile float v_l_trapez = 0;
 
 const float acc_max = 0.25;
@@ -46,20 +38,21 @@ void set_ref_velocity(float v, float w) {
 void bdc_loop() {
 	float step = acc_max * DT; //ovo je zapravo promjena brzine(maksimalna odjednom)
 	float diff_l = v_l_ref - v_l_trapez; //koliko jos treba da dostignem brzinu //ako je diff negativno, brzina je velika, treba usporiti
-	if (fabsf(diff_l) > step) //znaci ako je veca razlika od toga koliko smijem promijeniti brzinu odjednom
-			{
+
+	if (fabsf(diff_l) > step) {
+		//znaci ako je veca razlika od toga koliko smijem promijeniti brzinu odjednom
 		v_l_trapez += copysignf(step, diff_l); //ova funkcija kaze, uzmi vrednost step, ali znak od diff_r
-	} else //ako sam bas blizu od ciljane brzine
-	{
+	} else {
+		//ako sam bas blizu od ciljane brzine
 		v_l_trapez = v_l_ref;
 	}
-	//ovo je zapravo promjena brzine(maksimalna odjednom)
+
 	float diff_r = v_r_ref - v_r_trapez; //koliko jos treba da dostignem brzinu
-	if (fabsf(diff_r) > step) //znaci ako je veca razlika od toga koliko smijem promijeniti brzinu odjednom
-			{
+	if (fabsf(diff_r) > step) {
+		//znaci ako je veca razlika od toga koliko smijem promijeniti brzinu odjednom
 		v_r_trapez += copysignf(step, diff_r); //ova funkcija kaze, uzmi vrednost step, ali znak od diff_r
-	} else  //ako sam bas blizu od ciljane brzine
-	{
+	} else {
+		//ako sam bas blizu od ciljane brzine
 		v_r_trapez = v_r_ref;
 	}
 
@@ -76,14 +69,15 @@ void bdc_loop() {
 
 	motor_output_r = clamp(motor_output_r, -MAX_VOLTAGE, MAX_VOLTAGE);
 	motor_output_l = clamp(motor_output_l, -MAX_VOLTAGE, MAX_VOLTAGE); //opet da ogranicimo ako je izlazni napon iz regulatora veci ili manji od maksimalnog napona koji mozemo dovesti na motor
-//Medjutim, takav napon ne mozemo dovesti na drajver, treba nam smjer i pwm signal
+	//Medjutim, takav napon ne mozemo dovesti na drajver, treba nam smjer i pwm signal
+
 	set_m_left_voltage(motor_output_l);
 	set_m_right_voltage(motor_output_r); //znaci odredili smo i smjer i ccr registar
 
 }
 
-void set_m_right_voltage(float voltage) //voltage je zapravo izlaz pi regulatora
-{
+void set_m_right_voltage(float voltage) {
+	//voltage je zapravo izlaz pi regulatora
 	voltage = clamp(voltage, -MAX_VOLTAGE, MAX_VOLTAGE);
 	if (voltage > 0) {
 		set_dir_m_right(FORWARD); //smer
@@ -97,8 +91,8 @@ void set_m_right_voltage(float voltage) //voltage je zapravo izlaz pi regulatora
 
 }
 
-void set_m_left_voltage(float voltage) //voltage je zapravo izlaz pi regulatora
-{
+void set_m_left_voltage(float voltage) {
+	//voltage je zapravo izlaz pi regulatora
 	voltage = clamp(voltage, -MAX_VOLTAGE, MAX_VOLTAGE);
 	if (voltage > 0) {
 		set_dir_m_left(FORWARD); //smer

@@ -1,10 +1,3 @@
-/*
- * pwm.h
- *
- *  Created on: Feb 3, 2026
- *      Author: Win11
- */
-
 #ifndef INC_VOID_MODULI_PWM_H_
 #define INC_VOID_MODULI_PWM_H_
 
@@ -21,13 +14,10 @@ extern volatile float v_l_trapez;
 extern volatile float v_r_measured;
 extern volatile float v_l_measured; //eksterno definisemo promjenljive jer zelimo da budu vidljive u nekom drugom .c
 
-typedef enum
-{
-	FORWARD,
-	BACKWARD //treba nam za smjer
-}Dir_t;
+typedef enum {
+	FORWARD, BACKWARD //treba nam za smjer
+} Dir_t;
 
-//Prototipovi funkcija
 void set_ref_velocity(const float v, const float w);
 void bdc_loop();
 void set_m_right_voltage(float voltage);

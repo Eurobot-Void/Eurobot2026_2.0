@@ -1,10 +1,3 @@
-/*
- * servo.h
- *
- *  Created on: Feb 3, 2026
- *      Author: Win11
- */
-
 #ifndef INC_VOID_MODULI_SERVO_H_
 #define INC_VOID_MODULI_SERVO_H_
 

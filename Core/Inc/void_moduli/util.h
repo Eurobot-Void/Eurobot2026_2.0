@@ -3,20 +3,19 @@
 
 #include <math.h>
 
-static inline float normalize_rad_angle(float angle) //ovo je samo ogranicenje da se ugao nalzi izmedju minu pi i pi
-{
+//ovo je samo ogranicenje da se ugao nalzi izmedju minu pi i pi
+static inline float normalize_rad_angle(float angle) {
 	if (angle > M_PI) {
 		return angle - 2 * M_PI;
 	}
 	if (angle < -M_PI) {
 		return angle + 2 * M_PI;
 	}
-
 	return angle;
 }
 
-static inline float clamp(float x, float min, float max) //Funkcija koju pravim za ogranicenje napona, smanjen kod
-{
+//Funkcija koju pravim za ogranicenje napona, smanjen kod
+static inline float clamp(float x, float min, float max) {
 	if (x > max)
 		return max;
 	if (x < min)
