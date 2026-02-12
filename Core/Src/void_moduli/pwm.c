@@ -32,97 +32,51 @@ void set_ref_velocity(float v, float w) {
 
 	v_l_ref = clamp(v_l_ref, -v_l_max, v_l_max);
 	v_r_ref = clamp(v_r_ref, -v_r_max, v_r_max);
+}
 
+static inline void set_motor_voltage(float voltage, volatile uint32_t *CCR, uint16_t GPIO_Pin) {
+	voltage = clamp(voltage, -MAX_VOLTAGE, MAX_VOLTAGE);
+	GPIO_PinState direction = (voltage > 0) ? GPIO_PIN_RESET : GPIO_PIN_SET;
+	HAL_GPIO_WritePin(GPIOA, GPIO_Pin, direction); //na nuli kad ide napred
+	*CCR = (uint32_t) (fabsf(voltage) / MAX_VOLTAGE * ARR_MAX); //koliki je pwm signal
+}
+
+void set_m_left_voltage(float voltage) {
+	set_motor_voltage(voltage, &TIM4->CCR1, GPIO_PIN_9);
+}
+
+void set_m_right_voltage(float voltage) {
+	set_motor_voltage(voltage, &TIM3->CCR2, GPIO_PIN_8);
+}
+
+static inline float update_trapez(float v_ref, float v_trapez, float step) {
+	float diff = v_ref - v_trapez; //koliko jos treba da dostignem brzinu
+	//ako je diff negativno, brzina je velika, treba usporiti
+	//znaci ako je veca razlika od toga koliko smijem promijeniti brzinu odjednom
+	v_trapez += clamp(diff, -step, step);
+	return v_trapez;
 }
 
 void bdc_loop() {
 	float step = acc_max * DT; //ovo je zapravo promjena brzine(maksimalna odjednom)
-	float diff_l = v_l_ref - v_l_trapez; //koliko jos treba da dostignem brzinu //ako je diff negativno, brzina je velika, treba usporiti
 
-	if (fabsf(diff_l) > step) {
-		//znaci ako je veca razlika od toga koliko smijem promijeniti brzinu odjednom
-		v_l_trapez += copysignf(step, diff_l); //ova funkcija kaze, uzmi vrednost step, ali znak od diff_r
-	} else {
-		//ako sam bas blizu od ciljane brzine
-		v_l_trapez = v_l_ref;
-	}
-
-	float diff_r = v_r_ref - v_r_trapez; //koliko jos treba da dostignem brzinu
-	if (fabsf(diff_r) > step) {
-		//znaci ako je veca razlika od toga koliko smijem promijeniti brzinu odjednom
-		v_r_trapez += copysignf(step, diff_r); //ova funkcija kaze, uzmi vrednost step, ali znak od diff_r
-	} else {
-		//ako sam bas blizu od ciljane brzine
-		v_r_trapez = v_r_ref;
-	}
+	v_l_trapez = update_trapez(v_l_ref, v_l_trapez, step);
+	v_r_trapez = update_trapez(v_r_ref, v_r_trapez, step);
 
 	//PI REGULACIJA
-
-	float error_r = v_r_trapez - v_r_measured; //brzina koja nam treba minus mjerena, trapezna brzina je izracunata brzina koja nam treba
 	float error_l = v_l_trapez - v_l_measured;
+	float error_r = v_r_trapez - v_r_measured; //brzina koja nam treba minus mjerena, trapezna brzina je izracunata brzina koja nam treba
 
-	motor_output_r += Kp_r * (error_r - prev_error_r) + Ki_r * error_r;
 	motor_output_l += Kp_l * (error_l - prev_error_l) + Ki_l * error_l;
+	motor_output_r += Kp_r * (error_r - prev_error_r) + Ki_r * error_r;
 
-	prev_error_r = error_r;
 	prev_error_l = error_l;
+	prev_error_r = error_r;
 
-	motor_output_r = clamp(motor_output_r, -MAX_VOLTAGE, MAX_VOLTAGE);
-	motor_output_l = clamp(motor_output_l, -MAX_VOLTAGE, MAX_VOLTAGE); //opet da ogranicimo ako je izlazni napon iz regulatora veci ili manji od maksimalnog napona koji mozemo dovesti na motor
+	motor_output_l = clamp(motor_output_l, -MAX_VOLTAGE, MAX_VOLTAGE);
+	motor_output_r = clamp(motor_output_r, -MAX_VOLTAGE, MAX_VOLTAGE); //opet da ogranicimo ako je izlazni napon iz regulatora veci ili manji od maksimalnog napona koji mozemo dovesti na motor
 	//Medjutim, takav napon ne mozemo dovesti na drajver, treba nam smjer i pwm signal
 
 	set_m_left_voltage(motor_output_l);
 	set_m_right_voltage(motor_output_r); //znaci odredili smo i smjer i ccr registar
-
-}
-
-void set_m_right_voltage(float voltage) {
-	//voltage je zapravo izlaz pi regulatora
-	voltage = clamp(voltage, -MAX_VOLTAGE, MAX_VOLTAGE);
-	if (voltage > 0) {
-		set_dir_m_right(FORWARD); //smer
-		TIM3->CCR2 = (uint32_t) ((voltage / MAX_VOLTAGE) * ARR_MAX); //koliki je pwm signal
-	} else if (voltage < 0) {
-		set_dir_m_right(BACKWARD);
-		TIM3->CCR2 = (uint32_t) ((-voltage / MAX_VOLTAGE) * ARR_MAX);
-	} else {
-		TIM3->CCR2 = 0;
-	}
-
-}
-
-void set_m_left_voltage(float voltage) {
-	//voltage je zapravo izlaz pi regulatora
-	voltage = clamp(voltage, -MAX_VOLTAGE, MAX_VOLTAGE);
-	if (voltage > 0) {
-		set_dir_m_left(FORWARD); //smer
-		TIM4->CCR1 = (uint32_t) ((voltage / MAX_VOLTAGE) * ARR_MAX); //koliki je pwm signal
-	} else if (voltage < 0) {
-		set_dir_m_left(BACKWARD);
-		TIM4->CCR1 = (uint32_t) ((-voltage / MAX_VOLTAGE) * ARR_MAX);
-	} else {
-		TIM4->CCR1 = 0;
-	}
-
-}
-
-void set_dir_m_right(Dir_t dir) {
-	switch (dir) {
-	case FORWARD:
-		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET); //na nuli kad ide napred
-		break;
-	case BACKWARD:
-		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
-	}
-}
-
-void set_dir_m_left(Dir_t dir) {
-	switch (dir) {
-	case FORWARD:
-		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET); //na nuli kad ide napred
-		break;
-	case BACKWARD:
-		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);
-		break;
-	}
 }

@@ -3,24 +3,13 @@
 
 #include <math.h>
 
-//ovo je samo ogranicenje da se ugao nalzi izmedju minu pi i pi
+// opseg [-pi, pi)
 static inline float normalize_rad_angle(float angle) {
-	if (angle > M_PI) {
-		return angle - 2 * M_PI;
-	}
-	if (angle < -M_PI) {
-		return angle + 2 * M_PI;
-	}
-	return angle;
+	return angle - (floorf((angle + M_PI) / (2 * M_PI))) * 2 * M_PI;
 }
 
-//Funkcija koju pravim za ogranicenje napona, smanjen kod
 static inline float clamp(float x, float min, float max) {
-	if (x > max)
-		return max;
-	if (x < min)
-		return min;
-	return x;
+	return fminf(fmaxf(x, min), max);
 }
 
 #endif /* INC_VOID_MODULI_UTIL_H_ */
