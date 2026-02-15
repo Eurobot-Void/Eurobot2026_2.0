@@ -30,6 +30,26 @@ float th = 0.0;
 
 Motion_state_t current_state = IDLE;
 
+static inline void init_trajectory(float *dist1, float *dist2, float *dist3,
+		float dist_total, float *vel_peak, float acc_max, float vel_min,
+		float vel_max) {
+	//Sad izracunamo s1, s2 i s3 na osnovu svega
+	//mozemo s1, jer je v0 na pocetku 0
+	*dist1 = (vel_max * vel_max) / (2 * acc_max);
+	*dist2 = dist_total - 2 * *dist1;
+
+	//Ako je put bas kratak, trougaoni profil, nikad se ne dostize vmax
+	if (*dist2 < 0) {
+		*dist1 = dist_total / 2;
+		*dist2 = 0;
+	}
+
+	*dist3 = *dist1;
+
+	// stvarni maksimum brzine profila
+	*vel_peak = sqrtf(2.0f * acc_max * *dist1); //odmah izracunamo i znamo onda da li smo dostigli v_max, kad se s1 prepolovi ako imamo trougaoni profil
+}
+
 void set_ref_position(float x_goal, float y_goal, float theta_goal) {
 	if (current_state == IDLE) {
 		x_ref = x_goal;
@@ -45,41 +65,19 @@ void set_ref_position(float x_goal, float y_goal, float theta_goal) {
 		y_p = y;
 		theta_p = theta;
 
-		//Sad izracunamo s1, s2 i s3 na osnovu svega
-		//mozemo s1, jer je v0 na pocetku 0
-		s1 = (v_max * v_max) / (2 * a_max);
-		s3 = s1;
-		s2 = s_total - 2 * s1;
-
-		//Ako je put bas kratak, trougaoni profil, nikad se ne dostize vmax
-		if (s2 < 0) {
-			s1 = s_total / 2;
-			s2 = 0;
-			s3 = s1;
-		}
-		v_peak = sqrtf(2.0f * a_max * s1); //odmah izracunamo i znamo onda da li smo dostigli v_max, kad se s1 prepolovi ako imamo trougaoni profil
+		init_trajectory(&s1, &s2, &s3, s_total, &v_peak, a_max, V_MIN, v_max);
 
 		float heading_angle = atan2f(dy, dx);
 		th_total = fabsf(normalize_rad_angle(heading_angle - theta)); //ukupan ugao za koji robot treba da se okrene
-		th1 = (w_max * w_max) / (2.0f * alpha_max);
-		th3 = th1;
-		th2 = th_total - 2.0f * th1;
 
-		if (th2 < 0.0f) {
-			th1 = th_total / 2.0f;
-			th2 = 0.0f;
-			th3 = th1;
-		}
-
-		// stvarni maksimum brzine profila
-		w_peak = sqrtf(2.0f * alpha_max * th1);
+		init_trajectory(&th1, &th2, &th3, th_total, &w_peak, alpha_max, W_MIN,
+				w_max);
 
 		current_state = HEADING_POSE;
 	}
-
 }
 
-static inline float trajectory(float dist, float dist1, float dist2,
+static inline float update_trajectory(float dist, float dist1, float dist2,
 		float dist_total, float vel_peak, float acc_max, float vel_min) {
 	float vel;
 
@@ -102,11 +100,12 @@ static inline float trajectory(float dist, float dist1, float dist2,
 }
 
 static float trajectory_v(float s) {
-	return trajectory(s, s1, s2, s_total, v_peak, a_max, V_MIN);
+	return update_trajectory(s, s1, s2, s_total, v_peak, a_max, V_MIN);
 }
 
 static float trajectory_w(float th) {
-	return trajectory(th, th1, th2, th_total, w_peak, alpha_max, W_MIN);
+	return update_trajectory(th, th1, th2, th_total, w_peak, alpha_max,
+	W_MIN);
 }
 
 void position_loop() {
