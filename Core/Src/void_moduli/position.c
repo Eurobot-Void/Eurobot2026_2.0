@@ -39,7 +39,7 @@ void set_ref_position(float x_goal, float y_goal, float theta_goal) {
 		float dx = x_ref - x;
 		float dy = y_ref - y;
 
-		s_total = sqrtf(dx * dx + dy * dy);
+		s_total = hypotf(dx, dy);
 
 		x_p = x;
 		y_p = y;
@@ -79,43 +79,34 @@ void set_ref_position(float x_goal, float y_goal, float theta_goal) {
 
 }
 
-static float trajectory_v(float s) {
-	float v;
+static inline float trajectory(float dist, float dist1, float dist2,
+		float dist_total, float vel_peak, float acc_max, float vel_min) {
+	float vel;
 
-	if (s < s1) {
-		v = sqrtf(2.0f * a_max * s);
-	} else if (s <= (s1 + s2)) {
-		v = v_peak;
-	} else if (s <= s_total) {
-		v = sqrtf(v_peak * v_peak - 2.0f * a_max * (s - s1 - s2));
+	if (dist < dist1) {
+		vel = sqrtf(2.0f * acc_max * dist);
+	} else if (dist <= dist1 + dist2) {
+		vel = vel_peak;
+	} else if (dist <= dist_total) {
+		vel = sqrtf(
+				vel_peak * vel_peak - 2.0f * acc_max * (dist - dist1 - dist2));
 	} else {
-		v = 0.0f;
+		vel = 0.0f;
 	}
 
-	if (v > 0.0f && v < V_MIN)
-		v = V_MIN;
+	if (0.0f < vel && vel < vel_min) {
+		vel = vel_min;
+	}
 
-	return v;
+	return vel;
+}
+
+static float trajectory_v(float s) {
+	return trajectory(s, s1, s2, s_total, v_peak, a_max, V_MIN);
 }
 
 static float trajectory_w(float th) {
-	float w;
-
-	if (th < th1) {
-		w = sqrtf(2.0f * alpha_max * th);
-	} else if (th <= (th1 + th2)) {
-		w = w_peak;
-	} else if (th <= th_total) {
-		w = sqrtf(w_peak * w_peak - 2.0f * alpha_max * (th - th1 - th2));
-	} else {
-		w = 0.0f;
-	}
-
-	//minimalna ugaona brzina
-	if (w > 0.0f && w < W_MIN)
-		w = W_MIN;
-
-	return w;
+	return trajectory(th, th1, th2, th_total, w_peak, alpha_max, W_MIN);
 }
 
 void position_loop() {
@@ -128,7 +119,7 @@ void position_loop() {
 
 	float heading_angle = atan2f(dy, dx);
 
-	float distance_error = sqrtf(dx * dx + dy * dy);
+	float distance_error = hypotf(dx, dy);
 	float heading_error = normalize_rad_angle(heading_angle - theta); //imamo 3 faze, pa zato imamo i tri greske, prva faza je rotacija ka zeljenom pravcu, druga faza je translaciji, treca faza je rotacija ka cilju
 
 	switch (current_state) {
@@ -156,7 +147,7 @@ void position_loop() {
 		}
 		break;
 	case TRANSLATE_TO_GOAL:
-		float s = sqrtf((y - y_p) * (y - y_p) + (x - x_p) * (x - x_p)); //koliko smo presli do sada ka cilju
+		float s = hypotf(y - y_p, x - x_p); //koliko smo presli do sada ka cilju
 		v_ref = trajectory_v(s);
 
 		if (distance_error < eps_dist) {
