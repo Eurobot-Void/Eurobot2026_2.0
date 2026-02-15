@@ -51,30 +51,32 @@ static inline void init_trajectory(float *dist1, float *dist2, float *dist3,
 }
 
 void set_ref_position(float x_goal, float y_goal, float theta_goal) {
-	if (current_state == IDLE) {
-		x_ref = x_goal;
-		y_ref = y_goal;
-		theta_ref = theta_goal;
-
-		float dx = x_ref - x;
-		float dy = y_ref - y;
-
-		s_total = hypotf(dx, dy);
-
-		x_p = x;
-		y_p = y;
-		theta_p = theta;
-
-		init_trajectory(&s1, &s2, &s3, s_total, &v_peak, a_max, V_MIN, v_max);
-
-		float heading_angle = atan2f(dy, dx);
-		th_total = fabsf(normalize_rad_angle(heading_angle - theta)); //ukupan ugao za koji robot treba da se okrene
-
-		init_trajectory(&th1, &th2, &th3, th_total, &w_peak, alpha_max, W_MIN,
-				w_max);
-
-		current_state = HEADING_POSE;
+	if (current_state != IDLE) {
+		return;
 	}
+
+	x_ref = x_goal;
+	y_ref = y_goal;
+	theta_ref = theta_goal;
+
+	float dx = x_ref - x;
+	float dy = y_ref - y;
+
+	s_total = hypotf(dx, dy);
+
+	x_p = x;
+	y_p = y;
+	theta_p = theta;
+
+	init_trajectory(&s1, &s2, &s3, s_total, &v_peak, a_max, V_MIN, v_max);
+
+	float heading_angle = atan2f(dy, dx);
+	th_total = fabsf(normalize_rad_angle(heading_angle - theta)); //ukupan ugao za koji robot treba da se okrene
+
+	init_trajectory(&th1, &th2, &th3, th_total, &w_peak, alpha_max, W_MIN,
+			w_max);
+
+	current_state = HEADING_POSE;
 }
 
 static inline float update_trajectory(float dist, float dist1, float dist2,
