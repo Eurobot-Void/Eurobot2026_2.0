@@ -101,15 +101,6 @@ static inline float update_trajectory(float dist, float dist1, float dist2,
 	return vel;
 }
 
-static float trajectory_v(float s) {
-	return update_trajectory(s, s1, s2, s_total, v_peak, a_max, V_MIN);
-}
-
-static float trajectory_w(float th) {
-	return update_trajectory(th, th1, th2, th_total, w_peak, alpha_max,
-	W_MIN);
-}
-
 void position_loop() {
 	float v_ref = 0;
 	float w_ref = 0;
@@ -141,7 +132,8 @@ void position_loop() {
 //      w_peak = sqrtf (2.0f * alpha_max * th1);
 
 		th = fabsf(normalize_rad_angle(theta - theta_p));
-		w_ref = trajectory_w(th);
+		w_ref = update_trajectory(th, th1, th2, th_total, w_peak, alpha_max,
+		W_MIN);
 
 		if (fabsf(heading_error) < eps_theta) {
 			current_state = TRANSLATE_TO_GOAL;
@@ -149,7 +141,7 @@ void position_loop() {
 		break;
 	case TRANSLATE_TO_GOAL:
 		float s = hypotf(y - y_p, x - x_p); //koliko smo presli do sada ka cilju
-		v_ref = trajectory_v(s);
+		v_ref = update_trajectory(s, s1, s2, s_total, v_peak, a_max, V_MIN);
 
 		if (distance_error < eps_dist) {
 			w_ref = 0;

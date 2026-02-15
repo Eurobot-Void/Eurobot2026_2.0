@@ -1,4 +1,5 @@
 #include "void_moduli/servo.h"
+#include "void_moduli/util.h"
 
 #define PCA9685_MODE1       0x00  // str. 10, datasheet
 #define PCA9685_MODE2       0x01
@@ -58,10 +59,7 @@ void servo_init(I2C_HandleTypeDef *hi2c) {
 void servo_set_angle(uint8_t channel, float angle) {
 	if (channel >= SERVO_COUNT)
 		return;
-	if (angle < 0.0f)
-		angle = 0.0f;
-	if (angle > 180.0f)
-		angle = 180.0f;
+	angle = clamp(angle, 0.0f, 180.0f);
 	float pulse_imp = SERVO_MIN_IMP
 			+ (angle / 180.0f) * (SERVO_MAX_IMP - SERVO_MIN_IMP);
 	float ticks = (pulse_imp * SERVO_HZ * PCA9685_PWM_RES) / 1000000.0f;
