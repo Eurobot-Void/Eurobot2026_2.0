@@ -5,7 +5,7 @@
 
 // opseg [-pi, pi)
 static inline float normalize_rad_angle(float angle) {
-	return angle - (floorf((angle + M_PI) / (2 * M_PI))) * 2 * M_PI;
+	return angle - (floorf((angle + M_PI) / M_TWOPI)) * M_TWOPI;
 }
 
 static inline float clamp(float x, float min, float max) {

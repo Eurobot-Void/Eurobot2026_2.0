@@ -2,6 +2,7 @@
 #include "timer.h"
 #include "gpio.h"
 #include "void_moduli/pwm.h"
+#include "void_moduli/pid.h"
 #include "void_moduli/position.h"
 #include "void_moduli/util.h"
 
@@ -19,12 +20,8 @@ volatile float v_l_trapez = 0;
 
 const float acc_max = 0.25;
 
-volatile float motor_output_l = 0; //izlaz pid regulatora
-volatile float motor_output_r = 0;
-const float Kp_l = 25, Kp_r = 20; //Kp povecavamo dok robot ne krene da podrhtava, a onda Ki povecavamo, i omda Kp sredimo
-const float Ki_l = 2.5, Ki_r = 2;
-volatile float prev_error_l = 0; //prethodna greska
-volatile float prev_error_r = 0;
+PI_t pi_l = { .Kp = 25.0f, .Ki = 2.5f }; //Kp povecavamo dok robot ne krene da podrhtava, a onda Ki povecavamo, i omda Kp sredimo
+PI_t pi_r = { .Kp = 20.0f, .Ki = 2.0f };
 
 void set_ref_velocity(float v, float w) {
 	v_r_ref = v + w * HALF_SEPARATION_WHEEL;
@@ -49,34 +46,22 @@ void set_m_right_voltage(float voltage) {
 	set_motor_voltage(voltage, &TIM3->CCR2, GPIO_PIN_8);
 }
 
-static inline float update_trapez(float v_ref, float v_trapez, float step) {
-	float diff = v_ref - v_trapez; //koliko jos treba da dostignem brzinu
+static inline void update_trapez(float v_ref, volatile float *v_trapez, float step) {
+	float diff = v_ref - *v_trapez; //koliko jos treba da dostignem brzinu
 	//ako je diff negativno, brzina je velika, treba usporiti
 	//znaci ako je veca razlika od toga koliko smijem promijeniti brzinu odjednom
-	v_trapez += clamp(diff, -step, step);
-	return v_trapez;
+	*v_trapez += clamp(diff, -step, step);
 }
 
 void bdc_loop() {
 	float step = acc_max * DT; //ovo je zapravo promjena brzine(maksimalna odjednom)
 
-	v_l_trapez = update_trapez(v_l_ref, v_l_trapez, step);
-	v_r_trapez = update_trapez(v_r_ref, v_r_trapez, step);
+	update_trapez(v_l_ref, &v_l_trapez, step);
+	update_trapez(v_r_ref, &v_r_trapez, step);
 
-	//PI REGULACIJA
-	float error_l = v_l_trapez - v_l_measured;
-	float error_r = v_r_trapez - v_r_measured; //brzina koja nam treba minus mjerena, trapezna brzina je izracunata brzina koja nam treba
+	update_PI(&pi_l, v_l_trapez, v_l_measured);
+	update_PI(&pi_r, v_r_trapez, v_r_measured);
 
-	motor_output_l += Kp_l * (error_l - prev_error_l) + Ki_l * error_l;
-	motor_output_r += Kp_r * (error_r - prev_error_r) + Ki_r * error_r;
-
-	prev_error_l = error_l;
-	prev_error_r = error_r;
-
-	motor_output_l = clamp(motor_output_l, -MAX_VOLTAGE, MAX_VOLTAGE);
-	motor_output_r = clamp(motor_output_r, -MAX_VOLTAGE, MAX_VOLTAGE); //opet da ogranicimo ako je izlazni napon iz regulatora veci ili manji od maksimalnog napona koji mozemo dovesti na motor
-	//Medjutim, takav napon ne mozemo dovesti na drajver, treba nam smjer i pwm signal
-
-	set_m_left_voltage(motor_output_l);
-	set_m_right_voltage(motor_output_r); //znaci odredili smo i smjer i ccr registar
+	set_m_left_voltage(pi_l.output);
+	set_m_right_voltage(pi_r.output); //znaci odredili smo i smjer i ccr registar
 }
