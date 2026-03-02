@@ -1,0 +1,11 @@
+# Refactor za glavnog robota
+- Bez dodavanja nove funkcionalnosti
+- K&R stil koda jer ne trosi bezveze prostor
+- Odvajanje cistog C koda u zasebne datoteke, kao i potencijalnog zajednickog koda za sve robote
+- Promenljive koje ne treba cackati pocinju sa _
+- Util klasa ne sme imati c fajl
+- Bez grananja gde god je moguce
+- Funkcija nema povratnu vrednost samo ako sam 100% siguran da mi ubuduce nece trebati kopija vrednosti koja se menja
+- Nezavisne funkcije idu gore, a funkcije koje zavise od drugih ispod njih
+- Deduplikacija koda ako je duplirano vise od 3 linije i nije bitan redosled izvrsavanja
+- Guard clause umesto if piramida

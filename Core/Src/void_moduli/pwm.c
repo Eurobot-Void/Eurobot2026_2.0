@@ -24,8 +24,8 @@ PI_t pi_l = { .Kp = 25.0f, .Ki = 2.5f }; //Kp povecavamo dok robot ne krene da p
 PI_t pi_r = { .Kp = 20.0f, .Ki = 2.0f };
 
 void set_ref_velocity(float v, float w) {
-	v_r_ref = v + w * HALF_SEPARATION_WHEEL;
 	v_l_ref = v - w * HALF_SEPARATION_WHEEL;
+	v_r_ref = v + w * HALF_SEPARATION_WHEEL;
 
 	v_l_ref = clamp(v_l_ref, -v_l_max, v_l_max);
 	v_r_ref = clamp(v_r_ref, -v_r_max, v_r_max);
